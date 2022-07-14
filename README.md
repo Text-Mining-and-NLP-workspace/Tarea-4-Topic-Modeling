@@ -67,27 +67,70 @@ jupyter notebook "TopicModelling2-NLP-4.ipynb"
 
 ## Metodologia y Resultados:
 
+Para nuestro modelo utilizamos el dump de wikipedia en español sugerido (https://dumps.wikimedia.org/eswiki/20220620/), del cual realizamos varias pruebas de carga y preprocesamiento del texto, tratamos de utilizar el dump completo (mas de 3.5 Millones de articulos) pero nos fue imposible poder procesar esa cantidad de texto (limpiar texto,tokenizar, remover stopwords, lemmatizar, etc.) por lo cual realizamos varias pruebas quedandonos con unicamente 1500 articulos para el entrenamiento de nuestro modelo.
+
+primero realizamos la carga de nuestros documentos a un dataframe, del cual extraemos el texto a una lista, y utilizamos las siguientes expresiones regulares para comenzar el preprocesamiento del texto:
+
+```
+#Eliminar newlines y otros caracteres de espacios
+data = [re.sub(r'\s+', ' ', sent) for sent in data]
+
+#Eliminar tags HTML
+CLEANR = re.compile('<.*?>')
+data = [re.sub(CLEANR, '', sent) for sent in data]
+
+#Quitar tildes
+data = [re.sub(
+        r"([^n\u0300-\u036f]|n(?!\u0303(?![\u0300-\u036f])))[\u0300-\u036f]+", r"\1", 
+        normalize( "NFD", sent), 0, re.I
+    ) for sent in data]
+
+# Quitar Propiedades de configuracion
+aligns = re.compile('(align|text-align)[=](center|left|right)')
+data = [re.sub(aligns, '', sent) for sent in data]
+
+aligns = re.compile('(align|text-align)[=]["](center|left|right)["]')
+data = [re.sub(aligns, '', sent) for sent in data]
+
+# Quitarmos palabras comunes propias de Wiki
+wikiwords = re.compile('(left|right|width|class|align|style|background|Archivo|font|weight|bold|size|colspan|urlarchivo|fechaarchivo|deadurl|fechaacceso|bgcolor|listaref|wikitable|thumb)')
+data = [re.sub(wikiwords, '', sent) for sent in data]
+```
+Y continuamos utilizando el pipeline de spacy, para lemmatizar, quitar puntuaciones y stopwords, removiendo los siguientes tags de Part of speech:
+```
+removal= ['ADV','PRON','CCONJ','PUNCT','PART','DET','ADP','SPACE', 'NUM', 'SYM']
+```
+uilizamos nlp.pipe para poder realizar el procesamiento de una manera mas rapida y eficiente. El pipeline de Spacy implementa el siguiente flujo de funciones:<br>
+![nlp pipe](https://user-images.githubusercontent.com/70925688/178872351-056253ee-9b19-4670-a4a8-7c2fadd2a97d.JPG)
+
+
+
+
+
+
+Podemos observar nuestros topicos de forma grafica e interactiva en el siguiente enlace:
+[Visualizacion](https://htmlpreview.github.io/?https://github.com/Text-Mining-and-NLP-workspace/Tarea-4-Topic-Modeling/blob/main/index.html)
 ## Contribuciones
 
 - Aldo Montenegro Margnoni
-	- Tokenizacion y preparacion de data
+	- Seleccion de mejor modelo
 	- Metodo de prueba de hyperparametros 
 <br/>
 
 - Gabriel Fernando Montenero Ortiz
-	- Optimizacion en metodo para remover stopwords
-	- Organizacion de funciones en pipeline
+	- clasificacion de topicos
+	- Preprocesamiento de texto
     
 <br/>
 
 - Axel Adolfo Muralles Carranza
-	- Elaboracion de clase para modelo, metodos fit, predict y val_test
-	- seleccion de Hyperparametros
+	- Pruebas de datasets
+	- Seleccion de documentos, para mejor desempeño con nuestro poder de computo actual
 
 <br/>
 
 - German Antonio Oliva Muralles
-	- Pruebas para obtener mejor modelo
+	- Graficas de Topicos interactivas
 	- Sanity Check
 
 <br/>
